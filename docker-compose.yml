@@ -1,0 +1,98 @@
+services:
+  expense-tracker-db:
+    container_name: expense-tracker-db
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB_FILE: /run/secrets/db_name
+      POSTGRES_USER_FILE: /run/secrets/db_user
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_password
+    ports:
+      - "${DB_PORT}:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    secrets:
+      - db_name
+      - db_user
+      - db_password
+    user: ${DB_UID}:${DB_GID}
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U \"$(cat /run/secrets/db_user)\" -d \"$(cat /run/secrets/db_name)\""
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  expense-tracker-backend:
+    container_name: expense-tracker-backend
+    image: expense-tracker-backend:latest
+    build:
+      context: ./docker/backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      PORT: ${BACKEND_PORT}
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_NAME_FILE: /run/secrets/db_name
+      DB_USER_FILE: /run/secrets/db_user
+      DB_PASSWORD_FILE: /run/secrets/db_password
+      SESSION_COOKIE_NAME: ${SESSION_COOKIE_NAME}
+      SESSION_TTL_HOURS: ${SESSION_TTL_HOURS}
+      APP_ORIGIN: ${APP_ORIGIN}
+    secrets:
+      - db_name
+      - db_user
+      - db_password
+    depends_on:
+      expense-tracker-db:
+        condition: service_healthy
+    ports:
+      - "${BACKEND_PORT}:${BACKEND_PORT}"
+
+  expense-tracker-frontend:
+    container_name: expense-tracker-frontend
+    image: expense-tracker-frontend:latest
+    build:
+      context: ./docker/frontend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      PORT: ${FRONTEND_PORT}
+      SERVICE_URL: http://expense-tracker-backend:${BACKEND_PORT}
+    depends_on:
+      expense-tracker-backend:
+        condition: service_started
+    ports:
+      - "${FRONTEND_PORT}:${FRONTEND_PORT}"
+
+  expense-tracker-backend-test:
+    image: expense-tracker-backend-test:latest
+    build:
+      context: ./docker/backend
+      dockerfile: Dockerfile.test
+    profiles:
+      - test
+    working_dir: /app
+    volumes:
+      - ./docker/backend:/app
+    command: ["/usr/local/go/bin/go", "test", "./..."]
+
+volumes:
+  pg_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${DB_VOLUME}
+
+secrets:
+  db_name:
+    file: ${DB_NAME}
+  db_user:
+    file: ${DB_USER}
+  db_password:
+    file: ${DB_PASSWORD}

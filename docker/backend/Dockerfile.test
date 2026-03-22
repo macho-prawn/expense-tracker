@@ -1,0 +1,13 @@
+FROM golang:1.24
+
+WORKDIR /app
+
+ENV CGO_ENABLED=1
+
+COPY go.mod go.sum ./
+RUN /usr/local/go/bin/go mod download
+
+COPY . .
+RUN /usr/local/go/bin/go test -run TestThatDoesNotExist ./... >/dev/null
+
+CMD ["/usr/local/go/bin/go", "test", "./..."]
