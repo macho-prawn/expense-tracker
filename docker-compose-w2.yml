@@ -1,0 +1,61 @@
+services:
+  events-dashboard-db:
+    container_name: events-dashboard-db
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "${DB_PORT}:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    user: ${DB_UID}:${DB_GID}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  events-dashboard-backend:
+    image: backend:latest
+    container_name: events-dashboard-backend
+    build:
+      context: ./docker/backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      events-dashboard-db:
+        condition: service_healthy
+    environment:
+      HOST: 0.0.0.0
+      PORT: ${BACKEND_PORT}
+      DB_HOST: ${DB_HOST:-events-dashboard-db}
+      DB_PORT: ${DB_PORT:-5432}
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "${BACKEND_PORT}:${BACKEND_PORT}"
+
+  events-dashboard-frontend:
+    image: frontend:latest
+    container_name: events-dashboard-frontend
+    build:
+      context: ./docker/frontend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      events-dashboard-backend:
+        condition: service_started
+    ports:
+      - "${FRONTEND_PORT:-8082}:80"
+
+volumes:
+  pg_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${DB_VOLUME}

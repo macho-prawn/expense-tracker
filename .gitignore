@@ -1,0 +1,13 @@
+node_modules
+dist
+.DS_Store
+.env
+secrets/*
+!secrets/*.example
+docker/frontend/node_modules
+docker/frontend/dist
+docker/backend/.cache
+docker/backend/bin
+tmp
+coverage
+secrets
