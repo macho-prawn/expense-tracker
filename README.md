@@ -8,6 +8,7 @@
 - [Architecture Diagram](#architecture-diagram)
 - [Run with Docker](#run-with-docker)
 - [Local Development](#local-development)
+- [TODO](#todo)
 - [Development Attribution](#development-attribution)
 - [Special Notes](#special-notes)
 
@@ -170,6 +171,15 @@ Local development is centered on the Docker Compose stack.
   ```
 - The test image prewarms Go module and build caches during the Docker build so each run does not start from a cold `go-sqlite3` CGO compile
 - Manual verification should cover auth, group access, expense creation, settlement handling, reporting, and archived-group restrictions
+
+[Back to top](#top)
+
+## TODO
+1. Integrate TLS/SSL.
+2. Architecture needs to be redesigned:
+   - Add a messaging layer.
+   - Add AuthN/AuthZ.
+   - On valid email address, send a verification email.
 
 [Back to top](#top)
 
