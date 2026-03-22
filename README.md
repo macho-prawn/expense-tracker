@@ -184,7 +184,7 @@ Local development is centered on the Docker Compose stack.
 [Back to top](#top)
 
 ## Development Attribution
-- Principal developer: Codex (GPT-5 coding agent).
+- Principal developer: Codex (GPT-5 coding agent). _// old N00b assisted a bit_
 - Collaboration model: iterative prompt-driven development in the local repo with incremental implementation, debugging, testing, and UI refinement.
 
 ### Prompt Summary (Consolidated)
