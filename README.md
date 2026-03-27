@@ -42,7 +42,8 @@ An expense tracker for trips, roommates, and friend groups. It can also be used 
 - Backend: Go, Huma, GORM
 - Database: PostgreSQL 17
 - Runtime: Docker, Docker Compose
-- Test runtime: Docker Compose cached Go test image
+- HostOS / Virtualization: Windows 11 / Hyper-V
+- Linux Emulation: WSL Ubuntu
 
 [Back to top](#top)
 
